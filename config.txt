@@ -1,14 +1,14 @@
 #parameters
 
-WIDTH = 9
+WIDTH = 15
 
-HEIGHT = 7
+HEIGHT = 11
          
-ENTRY = 1,2
+ENTRY = 1,0
 
-EXIT = 1,1
+EXIT = 13,10
 
 OUTPUT_FILE = maze.txt
 
-PERFECT=True
+PERFECT=TRUE
 
