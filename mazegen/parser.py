@@ -17,15 +17,15 @@ def parser(filename: str) -> dict:
         else:
             y = height // 2
         ft_banner: list[tuple[int, int]] = [
-                                        (x - 1, y), (x - 2, y), (x - 3, y),
-                                        (x - 3, y - 1), (x - 3, y - 2),
-                                        (x - 1, y + 1), (x - 1, y + 2),
-                                        (x + 1, y), (x + 2, y), (x + 3, y),
-                                        (x + 3, y - 1), (x + 3, y - 2),
-                                        (x + 2, y - 2), (x + 1, y - 2),
-                                        (x + 1, y + 1), (x + 1, y + 2),
-                                        (x + 2, y + 2), (x + 3, y + 2)
-                                       ]
+            (x - 1, y), (x - 2, y), (x - 3, y),
+            (x - 3, y - 1), (x - 3, y - 2),
+            (x - 1, y + 1), (x - 1, y + 2),
+            (x + 1, y), (x + 2, y), (x + 3, y),
+            (x + 3, y - 1), (x + 3, y - 2),
+            (x + 2, y - 2), (x + 1, y - 2),
+            (x + 1, y + 1), (x + 1, y + 2),
+            (x + 2, y + 2), (x + 3, y + 2)
+        ]
         return ft_banner
     parameters: dict[str, str] = {}
     keys: set[str] = {"WIDTH", "HEIGHT", "ENTRY", "EXIT",
@@ -74,7 +74,7 @@ def parser(filename: str) -> dict:
     if parameters["ENTRY"]:
         try:
             x, y = parameters["ENTRY"].split(",")
-        except:
+        except ValueError:
             raise ValueError("ENTRY have to have 2 parameters as x, y")
         x = x.strip()
         y = y.strip()
@@ -84,12 +84,12 @@ def parser(filename: str) -> dict:
                 and 0 <= int(y) < int(parameters["HEIGHT"])
             ):
                 if (int(parameters["HEIGHT"]) <= 6 or
-                    int(parameters["WIDTH"]) <= 8):
+                        int(parameters["WIDTH"]) <= 8):
                     ft_banner = banner(int(parameters["WIDTH"]),
                                        int(parameters["HEIGHT"]))
                     if (int(x), int(y)) in ft_banner:
-                        raise ValueError("ENTRY coordinates cannot be on"
-                                          "42 banner coordinates!")
+                        raise ValueError("ENTRY coordinates cannot be on "
+                                         "42 banner coordinates!")
             else:
                 raise ValueError("ENTRY coordinates must be within"
                                  " the maze dimensions.")
@@ -101,7 +101,7 @@ def parser(filename: str) -> dict:
     if parameters["EXIT"]:
         try:
             x, y = parameters["EXIT"].split(",")
-        except:
+        except ValueError:
             raise ValueError("EXIT have to have 2 parameters as x, y")
         x = x.strip()
         y = y.strip()
@@ -111,12 +111,12 @@ def parser(filename: str) -> dict:
                 and 0 <= int(y) < int(parameters["HEIGHT"])
             ):
                 if (int(parameters["HEIGHT"]) <= 6 or
-                    int(parameters["WIDTH"]) <= 8):
+                        int(parameters["WIDTH"]) <= 8):
                     ft_banner = banner(int(parameters["WIDTH"]),
                                        int(parameters["HEIGHT"]))
                     if (int(x), int(y)) in ft_banner:
-                        raise ValueError("EXIT coordinates cannot be on"
-                                          " 42 banner coordinates!")
+                        raise ValueError("EXIT coordinates cannot be on "
+                                         "42 banner coordinates!")
             else:
                 raise ValueError("EXIT coordinates must be within"
                                  " the maze dimensions.")
@@ -147,6 +147,6 @@ def parser(filename: str) -> dict:
         raise ValueError("ENTRY and EXIT cannot be at the same coordinates.")
 
     if int(parameters["HEIGHT"]) < 6 or int(parameters["WIDTH"]) < 8:
-        print("Maze too small to implement 42 Banner!") 
+        print("Maze too small to implement 42 Banner!")
 
     return parameters

@@ -7,7 +7,7 @@ WEST: int = 8
 
 class MazeGenerator:
     def __init__(self, width: int, height: int, seed: int,
-                 entry: tuple = (1, 0), exit: tuple = (13,10)) -> None:
+                 entry: tuple = (1, 0), exit: tuple = (13, 10)) -> None:
         self.width: int = width
         self.height: int = height
         self.entry: tuple[int] = entry
@@ -79,9 +79,11 @@ class MazeGenerator:
             allowed_wall_list.remove(WEST)
         if ((x + 1, y) in self.visited_blocks) and (EAST in allowed_wall_list):
             allowed_wall_list.remove(EAST)
-        if ((x, y - 1) in self.visited_blocks) and (NORTH in allowed_wall_list):
+        if ((x, y - 1) in self.visited_blocks) and \
+                (NORTH in allowed_wall_list):
             allowed_wall_list.remove(NORTH)
-        if ((x, y + 1) in self.visited_blocks) and (SOUTH in allowed_wall_list):
+        if ((x, y + 1) in self.visited_blocks) and \
+                (SOUTH in allowed_wall_list):
             allowed_wall_list.remove(SOUTH)
         return allowed_wall_list
 
@@ -123,7 +125,7 @@ class MazeGenerator:
             else:
                 if len(self.backtracking) > 0:
                     self.backtracking.pop()
-                    (x, y)= self.backtracking[-1]
+                    (x, y) = self.backtracking[-1]
 
     def banner(self) -> list[tuple[int]]:
         x: int = 0
@@ -159,7 +161,7 @@ class MazeGenerator:
             ft_big_banner.append(coordinate_4)
 
         return ft_big_banner
-    
+
     def entry_point(self) -> list[tuple[int]]:
         entry_points: list[tuple[int]] = []
         x: int = self.entry[0]
