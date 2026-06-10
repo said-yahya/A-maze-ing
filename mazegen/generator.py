@@ -190,6 +190,45 @@ class MazeGenerator:
         exit_points.append(coordinate_4)
         return exit_points
 
+    def solve(self) -> list[tuple[int, int]]:
+
+        start = self.entry
+        end = self.exit
+        stack = [start]
+        visited = set([start])
+        parent = {}
+
+        while stack:
+            current = stack.pop()
+
+            if current == end:
+                break
+
+            x, y = current
+            cell_walls = self.maze[y][x]
+
+            neighbors = []
+            if not (cell_walls & NORTH) and y > 0: neighbors.append((x, y - 1))
+            if not (cell_walls & EAST) and x < self.width - 1: neighbors.append((x + 1, y))
+            if not (cell_walls & SOUTH) and y < self.height - 1: neighbors.append((x, y + 1))
+            if not (cell_walls & WEST) and x > 0: neighbors.append((x - 1, y))
+
+            for nxt in neighbors:
+                if nxt not in visited and nxt not in self.ft_banner_coordinates:
+                    visited.add(nxt)
+                    parent[nxt] = curr
+                    stack.append(nxt)
+            
+            path = []
+        curr = end
+        while curr != start:
+            if curr not in parent:
+                return []
+            path.append(curr)
+            curr = parent[curr]
+        path.append(start)
+        return path[::-1]
+
     def display_maze(self) -> None:
         MAX_Y = 3 * self.height + 1
         MAX_X = 3 * self.width + 1
@@ -244,13 +283,13 @@ class MazeGenerator:
         for y in range(MAX_Y):
             for x in range(MAX_X):
                 if self.dmaze[y][x] == "wall":
-                    print(f"{color} \x1b[0m", end="")
+                    print(f"{color}  \x1b[0m", end="")
                 elif self.dmaze[y][x] == "banner":
-                    print("\x1b[41m \x1b[0m", end="")
+                    print("\x1b[41m  \x1b[0m", end="")
                 elif self.dmaze[y][x] == "entry":
-                    print("\x1b[42m \x1b[0m", end="")
+                    print("\x1b[42m  \x1b[0m", end="")
                 elif self.dmaze[y][x] == "exit":
-                    print("\x1b[43m \x1b[0m", end="")   
+                    print("\x1b[43m  \x1b[0m", end="")
                 elif self.dmaze[y][x] == "empty":
-                    print("\x1b[49m \x1b[0m", end="")
+                    print("\x1b[49m  \x1b[0m", end="")
             print("")
