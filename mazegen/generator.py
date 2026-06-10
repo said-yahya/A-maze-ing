@@ -208,24 +208,29 @@ class MazeGenerator:
             cell_walls = self.maze[y][x]
 
             neighbors = []
-            if not (cell_walls & NORTH) and y > 0: neighbors.append((x, y - 1))
-            if not (cell_walls & EAST) and x < self.width - 1: neighbors.append((x + 1, y))
-            if not (cell_walls & SOUTH) and y < self.height - 1: neighbors.append((x, y + 1))
-            if not (cell_walls & WEST) and x > 0: neighbors.append((x - 1, y))
+            if not (cell_walls & NORTH) and y > 0:
+                neighbors.append((x, y - 1))
+            if not (cell_walls & EAST) and x < self.width - 1:
+                neighbors.append((x + 1, y))
+            if not (cell_walls & SOUTH) and y < self.height - 1:
+                neighbors.append((x, y + 1))
+            if not (cell_walls & WEST) and x > 0:
+                neighbors.append((x - 1, y))
 
-            for nxt in neighbors:
-                if nxt not in visited and nxt not in self.ft_banner_coordinates:
-                    visited.add(nxt)
-                    parent[nxt] = curr
-                    stack.append(nxt)
-            
+            for next in neighbors:
+                if (next not in visited and
+                        next not in self.ft_banner_coordinates):
+                    visited.add(next)
+                    parent[next] = current
+                    stack.append(next)
+
             path = []
-        curr = end
-        while curr != start:
-            if curr not in parent:
+        current = end
+        while current != start:
+            if current not in parent:
                 return []
-            path.append(curr)
-            curr = parent[curr]
+            path.append(current)
+            current = parent[current]
         path.append(start)
         return path[::-1]
 
@@ -274,22 +279,34 @@ class MazeGenerator:
                         row.append("wall")
             self.dmaze.append(row)
 
-    def display(self, color: str = "47") -> None:
+    def display(self, theme: dict, show_solution: bool = False) -> None:
         self.dmaze.clear()
         self.display_maze()
-        color = f"\x1b[{color}m"
+
+        if show_solution:
+            solution_path = self.solve()
+            for (px, py) in solution_path:
+                if (px, py) != self.entry and (px, py) != self.exit:
+                    for dy in range(1, 3):
+                        for dx in range(1, 3):
+                            self.dmaze[3 * py + dy][3 * px + dx] = "path"
+
         MAX_Y = 3 * self.height + 1
         MAX_X = 3 * self.width + 1
+
         for y in range(MAX_Y):
             for x in range(MAX_X):
-                if self.dmaze[y][x] == "wall":
-                    print(f"{color}  \x1b[0m", end="")
-                elif self.dmaze[y][x] == "banner":
-                    print("\x1b[41m  \x1b[0m", end="")
-                elif self.dmaze[y][x] == "entry":
-                    print("\x1b[42m  \x1b[0m", end="")
-                elif self.dmaze[y][x] == "exit":
-                    print("\x1b[43m  \x1b[0m", end="")
-                elif self.dmaze[y][x] == "empty":
+                cell = self.dmaze[y][x]
+                if cell == "wall":
+                    print(f"\x1b[{theme['wall']}m  \x1b[0m", end="")
+                elif cell == "banner":
+                    print(f"\x1b[{theme['banner']}m  \x1b[0m", end="")
+                elif cell == "entry":
+                    print(f"\x1b[{theme['entry']}m  \x1b[0m", end="")
+                elif cell == "exit":
+                    print(f"\x1b[{theme['exit']}m  \x1b[0m", end="")
+                elif cell == "path":
+                    print(f"\x1b[{theme['path']}m  \x1b[0m", end="")
+                elif cell == "empty":
                     print("\x1b[49m  \x1b[0m", end="")
             print("")

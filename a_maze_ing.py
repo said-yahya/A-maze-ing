@@ -20,13 +20,45 @@ if __name__ == "__main__":
         )
 
         maze.generate()
-
-        color_options = ["47", "46", "45", "44", "42"]
-        color_index = 0
+        themes = [
+            {
+                "wall": "47",    # Beyaz
+                "banner": "41",  # Kırmızı
+                "entry": "42",   # Yeşil
+                "exit": "43",    # Sarı
+                "path": "46"     # Cyan
+            },
+            {
+                "wall": "44",    # Mavi
+                "banner": "45",  # Magenta
+                "entry": "47",   # Beyaz
+                "exit": "43",    # Sarı
+                "path": "42"     # Yeşil
+            },
+            {
+                "wall": "46",    # Cyan
+                "banner": "41",  # Kırmızı
+                "entry": "45",   # Magenta
+                "exit": "47",    # Beyaz
+                "path": "43"     # Sarı
+            },
+            {
+                "wall": "100",   # Koyu Gri
+                "banner": "46",  # Cyan
+                "entry": "42",   # Yeşil
+                "exit": "41",    # Kırmızı
+                "path": "45"     # Magenta
+            }
+        ]
+        theme_index = 0
         show_path = False
 
         while True:
-            maze.display(color=color_options[color_index])
+            current_theme = themes[theme_index]
+            maze.display(
+                theme=current_theme,
+                show_solution=show_path,
+            )
 
             print("\n=== A-Maze-ing ===")
             print("1. Re-generate a new maze")
@@ -46,13 +78,14 @@ if __name__ == "__main__":
                     exit=exit_tuple
                 )
                 maze.generate()
-                print("\n[+] New maze generated!")
+                print("\n[+] New maze generated with a new seed!")
 
             elif choice == "2":
                 show_path = not show_path
 
             elif choice == "3":
-                color_index = (color_index + 1) % len(color_options)
+                theme_index = (theme_index + 1) % len(themes)
+                print(f"\n[+] Switched to Theme {theme_index + 1}")
 
             elif choice == "4":
 
@@ -72,4 +105,4 @@ if __name__ == "__main__":
             else:
                 print("\n[-] Invalid choice, please try again.")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"{e}")
