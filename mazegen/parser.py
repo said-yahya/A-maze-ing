@@ -83,13 +83,11 @@ def parser(filename: str) -> dict:
                 0 <= int(x) < int(parameters["WIDTH"])
                 and 0 <= int(y) < int(parameters["HEIGHT"])
             ):
-                if (int(parameters["HEIGHT"]) <= 6 or
-                        int(parameters["WIDTH"]) <= 8):
-                    ft_banner = banner(int(parameters["WIDTH"]),
-                                       int(parameters["HEIGHT"]))
-                    if (int(x), int(y)) in ft_banner:
-                        raise ValueError("ENTRY coordinates cannot be on "
-                                         "42 banner coordinates!")
+                ft_banner = banner(int(parameters["WIDTH"]),
+                                   int(parameters["HEIGHT"]))
+                if (int(x), int(y)) in ft_banner:
+                    raise ValueError("ENTRY coordinates cannot be on "
+                                     "42 banner coordinates!")
             else:
                 raise ValueError("ENTRY coordinates must be within"
                                  " the maze dimensions.")
@@ -110,13 +108,11 @@ def parser(filename: str) -> dict:
                 0 <= int(x) < int(parameters["WIDTH"])
                 and 0 <= int(y) < int(parameters["HEIGHT"])
             ):
-                if (int(parameters["HEIGHT"]) <= 6 or
-                        int(parameters["WIDTH"]) <= 8):
-                    ft_banner = banner(int(parameters["WIDTH"]),
-                                       int(parameters["HEIGHT"]))
-                    if (int(x), int(y)) in ft_banner:
-                        raise ValueError("EXIT coordinates cannot be on "
-                                         "42 banner coordinates!")
+                ft_banner = banner(int(parameters["WIDTH"]),
+                                   int(parameters["HEIGHT"]))
+                if (int(x), int(y)) in ft_banner:
+                    raise ValueError("EXIT coordinates cannot be on "
+                                     "42 banner coordinates!")
             else:
                 raise ValueError("EXIT coordinates must be within"
                                  " the maze dimensions.")

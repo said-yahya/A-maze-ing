@@ -46,6 +46,59 @@ class MazeGenerator:
                 self.maze[y1][x1] -= WEST
                 self.maze[y2][x2] -= EAST
 
+    def make_imperfect(self, remove_percentage: float = 0.15) -> None:
+
+        main_path = set(self.solve())
+
+        wall_candidates = []
+        priority_candidates = []
+
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) in self.ft_banner_coordinates:
+                    continue
+
+                if (
+                    x < self.width - 1
+                    and (x + 1, y) not in self.ft_banner_coordinates
+                ):
+                    if self.maze[y][x] & EAST:
+                        if (x, y) in main_path or (x + 1, y) in main_path:
+                            priority_candidates.append((x, x + 1, y, y))
+                        else:
+                            wall_candidates.append((x, x + 1, y, y))
+
+                if (
+                    y < self.height - 1
+                    and (x, y + 1) not in self.ft_banner_coordinates
+                ):
+                    if self.maze[y][x] & SOUTH:
+                        if (x, y) in main_path or (x, y + 1) in main_path:
+                            priority_candidates.append((x, x, y, y + 1))
+                        else:
+                            wall_candidates.append((x, x, y, y + 1))
+
+        total_cells = self.width * self.height
+        walls_to_remove = int(total_cells * remove_percentage)
+
+        self.chooser.shuffle(priority_candidates)
+
+        primary_removes = min(len(priority_candidates), walls_to_remove // 2 + 1)
+
+        for i in range(primary_removes):
+            x1, x2, y1, y2 = priority_candidates[i]
+            self.wall_breaker(x1, x2, y1, y2)
+
+        remaining_removes = walls_to_remove - primary_removes
+        all_remaining = priority_candidates[primary_removes:] + wall_candidates
+
+        if all_remaining and remaining_removes > 0:
+            remaining_removes = min(remaining_removes, len(all_remaining))
+            chosen_walls = self.chooser.sample(
+                all_remaining, remaining_removes)
+            for x1, x2, y1, y2 in chosen_walls:
+                self.wall_breaker(x1, x2, y1, y2)
+
     def get_random(self, number: int) -> int:
         return self.chooser.choice(range(0, number))
 
@@ -199,7 +252,7 @@ class MazeGenerator:
         parent = {}
 
         while stack:
-            current = stack.pop()
+            current = stack.pop(0)
 
             if current == end:
                 break
@@ -279,7 +332,7 @@ class MazeGenerator:
                         row.append("wall")
             self.dmaze.append(row)
 
-    def display(self, theme: dict, show_solution: bool = False) -> None:
+    def display(self, theme: dict, show_solution: bool = True) -> None:
         self.dmaze.clear()
         self.display_maze()
 

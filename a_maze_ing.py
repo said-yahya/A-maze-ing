@@ -19,7 +19,6 @@ if __name__ == "__main__":
             exit=exit_tuple
         )
 
-        maze.generate()
         themes = [
             {
                 "wall": "47",    # Beyaz
@@ -51,7 +50,12 @@ if __name__ == "__main__":
             }
         ]
         theme_index = 0
-        show_path = False
+        show_path = True
+
+        maze.generate()
+
+        if parameters["PERFECT"].capitalize == "False":
+            maze.make_imperfect(remove_percentage=0.15)
 
         while True:
             current_theme = themes[theme_index]
@@ -78,6 +82,8 @@ if __name__ == "__main__":
                     exit=exit_tuple
                 )
                 maze.generate()
+                if parameters["PERFECT"].upper == "FALSE":
+                    maze.make_imperfect(remove_percentage=0.15)
                 print("\n[+] New maze generated with a new seed!")
 
             elif choice == "2":
