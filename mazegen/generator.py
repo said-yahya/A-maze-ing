@@ -1,4 +1,6 @@
 import random
+from collections import deque
+
 NORTH: int = 1
 EAST: int = 2
 SOUTH: int = 4
@@ -7,7 +9,7 @@ WEST: int = 8
 
 class MazeGenerator:
     def __init__(self, width: int, height: int, seed: int,
-                 entry: tuple = (1, 0), exit: tuple = (13, 10)) -> None:
+                 entry: tuple, exit: tuple) -> None:
         self.width: int = width
         self.height: int = height
         self.entry: tuple[int] = entry
@@ -45,59 +47,6 @@ class MazeGenerator:
             elif x1 > x2:
                 self.maze[y1][x1] -= WEST
                 self.maze[y2][x2] -= EAST
-
-    def make_imperfect(self, remove_percentage: float = 0.15) -> None:
-
-        main_path = set(self.solve())
-
-        wall_candidates = []
-        priority_candidates = []
-
-        for y in range(self.height):
-            for x in range(self.width):
-                if (x, y) in self.ft_banner_coordinates:
-                    continue
-
-                if (
-                    x < self.width - 1
-                    and (x + 1, y) not in self.ft_banner_coordinates
-                ):
-                    if self.maze[y][x] & EAST:
-                        if (x, y) in main_path or (x + 1, y) in main_path:
-                            priority_candidates.append((x, x + 1, y, y))
-                        else:
-                            wall_candidates.append((x, x + 1, y, y))
-
-                if (
-                    y < self.height - 1
-                    and (x, y + 1) not in self.ft_banner_coordinates
-                ):
-                    if self.maze[y][x] & SOUTH:
-                        if (x, y) in main_path or (x, y + 1) in main_path:
-                            priority_candidates.append((x, x, y, y + 1))
-                        else:
-                            wall_candidates.append((x, x, y, y + 1))
-
-        total_cells = self.width * self.height
-        walls_to_remove = int(total_cells * remove_percentage)
-
-        self.chooser.shuffle(priority_candidates)
-
-        primary_removes = min(len(priority_candidates), walls_to_remove // 2 + 1)
-
-        for i in range(primary_removes):
-            x1, x2, y1, y2 = priority_candidates[i]
-            self.wall_breaker(x1, x2, y1, y2)
-
-        remaining_removes = walls_to_remove - primary_removes
-        all_remaining = priority_candidates[primary_removes:] + wall_candidates
-
-        if all_remaining and remaining_removes > 0:
-            remaining_removes = min(remaining_removes, len(all_remaining))
-            chosen_walls = self.chooser.sample(
-                all_remaining, remaining_removes)
-            for x1, x2, y1, y2 in chosen_walls:
-                self.wall_breaker(x1, x2, y1, y2)
 
     def get_random(self, number: int) -> int:
         return self.chooser.choice(range(0, number))
@@ -140,7 +89,7 @@ class MazeGenerator:
             allowed_wall_list.remove(SOUTH)
         return allowed_wall_list
 
-    def generate(self) -> None:
+    def generate(self, perfect: bool = True) -> None:
         x: int = self.get_random(self.width)
         y: int = self.get_random(self.height)
 
@@ -178,7 +127,47 @@ class MazeGenerator:
             else:
                 if len(self.backtracking) > 0:
                     self.backtracking.pop()
-                    (x, y) = self.backtracking[-1]
+                    if len(self.backtracking) > 0:
+                        (x, y) = self.backtracking[-1]
+        if not perfect:
+            num_walls_to_break = int((self.width * self.height) * 0.1)
+            if num_walls_to_break == 0 and self.width > 1 and self.height > 1:
+                num_walls_to_break = 1
+
+            broken_count = 0
+            attempts = 0
+            while broken_count < num_walls_to_break and attempts < 1000:
+                attempts += 1
+
+                rx = self.chooser.randint(0, self.width - 1)
+                ry = self.chooser.randint(0, self.height - 1)
+
+                if (rx, ry) in self.ft_banner_coordinates:
+                    continue
+                direction = self.chooser.choice([NORTH, EAST, SOUTH, WEST])
+                if direction == NORTH and ry > 0:
+                    if (rx, ry - 1) not in self.ft_banner_coordinates:
+                        if self.maze[ry][rx] & NORTH:
+                            self.wall_breaker(rx, rx, ry, ry - 1)
+                            broken_count += 1
+
+                elif direction == EAST and rx < self.width - 1:
+                    if (rx + 1, ry) not in self.ft_banner_coordinates:
+                        if self.maze[ry][rx] & EAST:
+                            self.wall_breaker(rx, rx + 1, ry, ry)
+                            broken_count += 1
+
+                elif direction == SOUTH and ry < self.height - 1:
+                    if (rx, ry + 1) not in self.ft_banner_coordinates:
+                        if self.maze[ry][rx] & SOUTH:
+                            self.wall_breaker(rx, rx, ry, ry + 1)
+                            broken_count += 1
+
+                elif direction == WEST and rx > 0:
+                    if (rx - 1, ry) not in self.ft_banner_coordinates:
+                        if self.maze[ry][rx] & WEST:
+                            self.wall_breaker(rx, rx - 1, ry, ry)
+                            broken_count += 1
 
     def banner(self) -> list[tuple[int]]:
         x: int = 0
@@ -243,57 +232,64 @@ class MazeGenerator:
         exit_points.append(coordinate_4)
         return exit_points
 
-    def solve(self) -> list[tuple[int, int]]:
+    def solve(self) -> tuple[list[tuple[int, int]], str]:
 
         start = self.entry
         end = self.exit
-        stack = [start]
-        visited = set([start])
-        parent = {}
 
-        while stack:
-            current = stack.pop(0)
+        queue = deque([(start[0], start[1], [start], "")])
 
-            if current == end:
-                break
+        visited = set()
+        visited.add(start)
 
-            x, y = current
-            cell_walls = self.maze[y][x]
+        directions = [
+            (NORTH, 0, -1, 'N'),
+            (EAST,  1,  0, 'E'),
+            (SOUTH, 0,  1, 'S'),
+            (WEST, -1,  0, 'W')
+        ]
 
-            neighbors = []
-            if not (cell_walls & NORTH) and y > 0:
-                neighbors.append((x, y - 1))
-            if not (cell_walls & EAST) and x < self.width - 1:
-                neighbors.append((x + 1, y))
-            if not (cell_walls & SOUTH) and y < self.height - 1:
-                neighbors.append((x, y + 1))
-            if not (cell_walls & WEST) and x > 0:
-                neighbors.append((x - 1, y))
+        while queue:
+            cx, cy, path_coords, path_str = queue.popleft()
 
-            for next in neighbors:
-                if (next not in visited and
-                        next not in self.ft_banner_coordinates):
-                    visited.add(next)
-                    parent[next] = current
-                    stack.append(next)
+            if (cx, cy) == end:
+                return path_coords, path_str
 
-            path = []
-        current = end
-        while current != start:
-            if current not in parent:
-                return []
-            path.append(current)
-            current = parent[current]
-        path.append(start)
-        return path[::-1]
+            for direction_bit, dx, dy, direction_char in directions:
 
-    def display_maze(self) -> None:
+                if not (self.maze[cy][cx] & direction_bit):
+                    nx, ny = cx + dx, cy + dy
+
+                    if 0 <= nx < self.width and 0 <= ny < self.height:
+                        if (nx, ny) not in visited:
+
+                            if (nx, ny) in self.ft_banner_coordinates:
+                                continue
+
+                            visited.add((nx, ny))
+                            queue.append((
+                                            nx, ny, path_coords + [(nx, ny)],
+                                            path_str + direction_char))
+
+        return [], ""
+
+    def display_maze(self, show_solution: bool = False,
+                     solution_coords: list = None) -> None:
         MAX_Y = 3 * self.height + 1
         MAX_X = 3 * self.width + 1
         if (self.height >= 6 and self.width >= 8):
             ft_banner: list[tuple[int]] = self.banner()
         entry_points: list[tuple[int]] = self.entry_point()
         exit_points: list[tuple[int]] = self.exit_point()
+
+        solution_points = set()
+        if show_solution and solution_coords:
+            for (sx, sy) in solution_coords:
+                solution_points.add((3 * sx + 1, 3 * sy + 1))
+                solution_points.add((3 * sx + 1, 3 * sy + 2))
+                solution_points.add((3 * sx + 2, 3 * sy + 1))
+                solution_points.add((3 * sx + 2, 3 * sy + 2))
+
         for y in range(MAX_Y):
             row: list[str] = []
             for x in range(MAX_X):
@@ -308,6 +304,8 @@ class MazeGenerator:
                     row.append("entry")
                 elif (x, y) in exit_points:
                     row.append("exit")
+                elif show_solution and (x, y) in solution_points:
+                    row.append("path")
                 elif x % 3 != 0 and y % 3 != 0:
                     row.append("empty")
                 elif x % 3 == 0 and y % 3 != 0:
@@ -334,16 +332,8 @@ class MazeGenerator:
 
     def display(self, theme: dict, show_solution: bool = True) -> None:
         self.dmaze.clear()
-        self.display_maze()
-
-        if show_solution:
-            solution_path = self.solve()
-            for (px, py) in solution_path:
-                if (px, py) != self.entry and (px, py) != self.exit:
-                    for dy in range(1, 3):
-                        for dx in range(1, 3):
-                            self.dmaze[3 * py + dy][3 * px + dx] = "path"
-
+        solution_coords, solution_path = self.solve()
+        self.display_maze(show_solution, solution_coords)
         MAX_Y = 3 * self.height + 1
         MAX_X = 3 * self.width + 1
 
