@@ -1,22 +1,27 @@
-import mazegen
+from mazegen import InvalidParameterError, MazeGenerator, parser
 import random
+import sys
 
 
 if __name__ == "__main__":
     try:
-        parameters = mazegen.parser("config.txt")
+        if sys.argv[1] != "config.txt":
+            raise InvalidParameterError(f"Wrong argument {sys.argv[1]}\n"
+                                        "Program must run like 'python3 "
+                                        "a_maze_ing.py config.txt'")
+        parameters = parser(sys.argv[1])
 
-        entry_tuple = tuple(map(int, parameters["ENTRY"].split(",")))
-        exit_tuple = tuple(map(int, parameters["EXIT"].split(",")))
+        if "SEED" in parameters.keys():
+            current_seed = parameters["SEED"]
+        else:
+            current_seed = random.randint(1, 100000)
 
-        current_seed = random.randint(1, 100000)
-
-        maze = mazegen.MazeGenerator(
+        maze = MazeGenerator(
             int(parameters["WIDTH"]),
             int(parameters["HEIGHT"]),
             current_seed,
-            entry=entry_tuple,
-            exit=exit_tuple
+            entry=parameters["ENTRY"],
+            exit=parameters["EXIT"]
         )
 
         themes = [
@@ -52,8 +57,7 @@ if __name__ == "__main__":
         theme_index = 0
         show_path = True
 
-        is_perfect = parameters["PERFECT"].lower() == "true"
-        maze.generate(is_perfect)
+        maze.generate(parameters["PERFECT"])
 
         while True:
             current_theme = themes[theme_index]
@@ -72,15 +76,14 @@ if __name__ == "__main__":
 
             if choice == "1":
                 current_seed = random.randint(1, 100000)
-                maze = mazegen.MazeGenerator(
+                maze = MazeGenerator(
                     int(parameters["WIDTH"]),
                     int(parameters["HEIGHT"]),
                     current_seed,
-                    entry=entry_tuple,
-                    exit=exit_tuple
+                    entry=parameters["ENTRY"],
+                    exit=parameters["EXIT"]
                 )
-                is_perfect = parameters["PERFECT"].lower() == "true"
-                maze.generate(perfect=is_perfect)
+                maze.generate(perfect=parameters["PERFECT"])
                 print("\n[+] New maze generated with a new seed!")
 
             elif choice == "2":
@@ -92,8 +95,8 @@ if __name__ == "__main__":
 
             elif choice == "4":
                 output_name = parameters["OUTPUT_FILE"]
-                entry_name = parameters["ENTRY"]
-                exit_name = parameters["EXIT"]
+                entry_name: str = f"{parameters["ENTRY"][0]},{parameters["ENTRY"][1]}"
+                exit_name: str = f"{parameters["EXIT"][0]},{parameters["EXIT"][1]}"
 
                 solution_path, path_str = maze.solve()
 

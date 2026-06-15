@@ -1,13 +1,13 @@
-#parameters
-
-WIDTH = 10
+WIDTH = 20
 
 HEIGHT = 10
          
 ENTRY = 0,0
 
-EXIT = 9,9
+EXIT = 17, 8
 
-OUTPUT_FILE = maze.txt
+OUTPUT_FILE = output_maze.txt
+ 
+PERFECT=True
 
-PERFECT=False
+SEED=24
