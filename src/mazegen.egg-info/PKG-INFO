@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: mazegen
+Version: 1.0.0
+Summary: A reusable 42 maze generator package
+Author-email: Yakhyo Saidkhujaev <ysaikhuj@student.42istanbul.com.tr>, Volkan AKTAŞ <vaktas@student.42istanbul.com.tr>
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
