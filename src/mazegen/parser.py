@@ -52,8 +52,11 @@ def parser(filename: str) -> dict[str, Any]:
         if argument.startswith("#") or argument == "":
             continue
         elif "=" in argument:
+            if argument.count("=") != 1:
+                raise InvalidParameterError("The parameter is invalid. "
+                                            "Usage Argument = Value")
             key, value = argument.split("=", 1)
-            key = key.strip()
+            key = (key.strip().upper())
             if "#" in value:
                 value = value.split("#")[0]
             value = value.strip()
@@ -87,13 +90,13 @@ def parser(filename: str) -> dict[str, Any]:
 
     if "HEIGHT" in parameters_keys:
         try:
-            heidht_value = int(parameters["HEIGHT"])
+            height_value = int(parameters["HEIGHT"])
         except ValueError:
             raise InvalidParameterError("HEIGHT must be equal to just one "
                                         "integer.")
 
-        if MIN_HEIGHT <= heidht_value <= MAX_HEIGHT:
-            parameters["HEIGHT"] = heidht_value
+        if MIN_HEIGHT <= height_value <= MAX_HEIGHT:
+            parameters["HEIGHT"] = height_value
         else:
             raise InvalidParameterError("HEIGHT must be between "
                                         f"{MIN_HEIGHT} and {MAX_HEIGHT}.")

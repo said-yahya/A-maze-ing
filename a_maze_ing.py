@@ -88,8 +88,11 @@ if __name__ == "__main__":
                 print(f"\n[+] Switched to Theme {theme_index + 1}")
 
             elif choice == "4":
-                    print(f"\n[+] Maze saved to {parameters["OUTPUT_FILE"]}. Goodbye!")
-                    break
+                print(
+                    f"\n[+] Maze saved to {parameters['OUTPUT_FILE']}. "
+                    "Goodbye!"
+                )
+                break
             else:
                 print("\n[-] Invalid choice, please try again.")
     except Exception as e:
