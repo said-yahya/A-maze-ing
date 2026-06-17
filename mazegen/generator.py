@@ -1,5 +1,5 @@
 import random
-from .parser import MIN_HEIGHT, MIN_WIDTH
+from mazegen import MIN_HEIGHT, MIN_WIDTH
 from collections import deque
 
 NORTH: int = 1
@@ -21,6 +21,8 @@ class MazeGenerator:
         self.__visited_blocks: list[tuple[int, int]] = []
         self.__backtracking: list[tuple[int, int]] = []
         self.__blocks_coordinates: list[tuple[int, int]] = []
+        self.__solution_coordinates: list[tuple[int, int]] = []
+        self.__path_str: str = ""
         self.__chooser: random.Random = random.Random(seed)
         self.__create_maze_instance()
 
@@ -42,6 +44,8 @@ class MazeGenerator:
         self.__blocks_coordinates.clear()
         self.__visited_blocks.clear()
         self.__backtracking.clear()
+        self.__solution_coordinates.clear()
+        self.__path_str = ""
 
     def __wall_breaker(self, x1: int, x2: int, y1: int, y2: int) -> None:
         if x1 == x2:
@@ -110,7 +114,7 @@ class MazeGenerator:
     def generate(self, perfect: bool = True) -> None:
         self.__clear_maze()
         self.__create_maze_instance()
-        
+
         x: int = self.__get_random(self.__width)
         y: int = self.__get_random(self.__height)
 
@@ -254,7 +258,7 @@ class MazeGenerator:
         exit_points.add(coordinate_4)
         return exit_points
 
-    def solve(self) -> tuple[list[tuple[int, int]], str]:
+    def solve(self) -> None:
         start = self.__entry
         end = self.__exit
 
@@ -274,7 +278,9 @@ class MazeGenerator:
             cx, cy, path_coords, path_str = queue.popleft()
 
             if (cx, cy) == end:
-                return path_coords, path_str
+                self.__solution_coordinates = path_coords
+                self.__path_str = path_str
+                break
 
             for direction_bit, dx, dy, direction_char in directions:
 
@@ -290,10 +296,8 @@ class MazeGenerator:
                             queue.append((
                                           nx, ny, path_coords + [(nx, ny)],
                                           path_str + direction_char))
-        return ([], "")
 
-    def __display_maze(self, show_solution: bool = False,
-                       solution_coords: list[tuple[int, int]] = []) -> None:
+    def __display_maze(self, show_solution: bool = False) -> None:
         MAX_Y = 3 * self.__height + 1
         MAX_X = 3 * self.__width + 1
         if (self.__height >= 6 and self.__width >= 8):
@@ -302,8 +306,8 @@ class MazeGenerator:
         exit_points: set[tuple[int, int]] = self.__exit_point()
 
         solution_points = set()
-        if show_solution and len(solution_coords):
-            for (sx, sy) in solution_coords:
+        if show_solution and len(self.__solution_coordinates):
+            for (sx, sy) in self.__solution_coordinates:
                 solution_points.add((3 * sx + 1, 3 * sy + 1))
                 solution_points.add((3 * sx + 1, 3 * sy + 2))
                 solution_points.add((3 * sx + 2, 3 * sy + 1))
@@ -330,17 +334,20 @@ class MazeGenerator:
                 elif x % 3 == 0 and y % 3 != 0:
                     if self.__maze[(y - 1) // 3][(x - 1) // 3] & EAST:
                         row.append("wall")
-                    elif (((x - 1) // 3, (y - 1) // 3) in solution_coords and
-                          ((x - 1) // 3 + 1, (y - 1) // 3) in solution_coords
-                          and show_solution):
+                    elif (((x - 1) // 3, (y - 1) // 3)
+                          in self.__solution_coordinates and
+                          ((x - 1) // 3 + 1, (y - 1) // 3) in
+                          self.__solution_coordinates and show_solution):
                         row.append("path")
                     else:
                         row.append("empty")
                 elif y % 3 == 0 and x % 3 != 0:
                     if self.__maze[(y - 1) // 3][(x - 1) // 3] & SOUTH:
                         row.append("wall")
-                    elif (((x - 1) // 3, (y - 1) // 3) in solution_coords and
-                          ((x - 1) // 3, (y - 1) // 3 + 1) in solution_coords
+                    elif (((x - 1) // 3, (y - 1) // 3)
+                          in self.__solution_coordinates and
+                          ((x - 1) // 3, (y - 1) // 3 + 1)
+                          in self.__solution_coordinates
                           and show_solution):
                         row.append("path")
                     else:
@@ -357,11 +364,14 @@ class MazeGenerator:
                         row.append("wall")
             self.__dmaze.append(row)
 
-    def display(self, theme: dict[str, str],
-                show_solution: bool = True) -> None:
+    def display(self, show_solution: bool = True,
+                theme: dict[str, str] = {"wall": "47", "banner": "41",
+                                         "entry": "42", "exit": "43",
+                                         "path": "46"}) -> None:
         self.__dmaze.clear()
-        solution_coords, solution_path = self.solve()
-        self.__display_maze(show_solution, solution_coords)
+        if len(self.__path_str) == 0:
+            show_solution = False
+        self.__display_maze(show_solution)
         MAX_Y = 3 * self.__height + 1
         MAX_X = 3 * self.__width + 1
 
@@ -387,8 +397,6 @@ class MazeGenerator:
         entry_name: str = f"{self.__entry[0]},{self.__entry[1]}"
         exit_name: str = f"{self.__exit[0]},{self.__exit[1]}"
 
-        solution_path, path_str = self.solve()
-
         with open(output_name, "w") as file:
             for row in self.__maze:
                 hex_row = "".join(f"{cell:X}" for cell in row)
@@ -396,5 +404,4 @@ class MazeGenerator:
             file.write("\n")
             file.write(entry_name + "\n")
             file.write(exit_name + "\n")
-            file.write(path_str + "\n")
-                  
+            file.write(self.__path_str + "\n")
